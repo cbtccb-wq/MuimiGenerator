@@ -33,6 +33,37 @@
 
 <!-- 以下にフェーズ完了ごとに追記する -->
 
+### Phase 2–7 — 2026-03-22
+
+**変えたこと:**
+- Phase 2 (SVG描画): index.html, src/main.tsx, src/index.css, PartRenderer.tsx, ConnectionRenderer.tsx, MechanismCanvas.tsx
+- Phase 3 (手動編集 minimal): PartPalette.tsx（追加・削除）
+- Phase 4 (生成): buildMainPath.ts (5テンプレート), GeneratorService.ts (addRedundantGears)
+- Phase 5 (シミュレーション): topologicalSort.ts, initRuntime.ts, stepRuntime.ts
+- Phase 6 (評価): EvaluationService.ts (consistency/complexity/meaninglessness/comment)
+- Phase 7 (永続化): saveMechanism.ts, loadMechanism.ts
+- UI: App.tsx, useAppStore.ts, PlaybackToolbar.tsx, ScorePanel.tsx
+- Tests: stepRuntime.test.ts, topologicalSort.test.ts, EvaluationService.test.ts, loadMechanism.test.ts
+- 計 111テスト全通過
+
+**変えなかったこと（理由）:**
+- Phase 1 のドメイン型・ルール — 変更不要
+- evaluation_rubric.md — ループ中変更禁止
+
+**未解決課題:**
+- Phase 8 (仕上げ/ポリッシュ) 未着手
+- ドラッグ&ドロップによる部品移動 未実装（Phase 3 minimal スコープ外）
+
+**現在の仮定:**
+- A-003 RESOLVED: Phase 3 は minimal L2 として実装（パレット追加+削除のみ）
+- cam_follower は linear→linear（Phase 1 確定済み）
+
+**触ってはいけないもの:**
+- docs/ai/evaluation_rubric.md
+- connectionRules.ts の VALID_CONNECTIONS マップ
+
+**commit hash:** （コミット後に記入）
+
 ### Phase 1 — 2026-03-22
 
 **変えたこと:**
