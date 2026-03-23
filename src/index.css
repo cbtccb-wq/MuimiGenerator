@@ -2,7 +2,7 @@
 
 :root {
   font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   background: #0f172a;
   color: #e2e8f0;
 }
@@ -15,7 +15,7 @@ button {
   border: 1px solid #334155;
   border-radius: 4px;
   padding: 5px 10px;
-  font-size: 13px;
+  font-size: 12px;
   background: #1e293b;
   color: #e2e8f0;
   transition: background 0.1s, border-color 0.1s;
@@ -34,7 +34,7 @@ select {
   border: 1px solid #334155;
   border-radius: 4px;
   padding: 5px 8px;
-  font-size: 13px;
+  font-size: 12px;
   cursor: pointer;
 }
 
@@ -66,7 +66,7 @@ select {
   gap: 4px;
   overflow-y: auto;
 }
-.side-panel h2 { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.side-panel h2 { font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
 .palette-btn {
   width: 100%;
   text-align: left;
@@ -97,19 +97,19 @@ select {
 .score-bar { height: 4px; border-radius: 2px; background: #334155; flex: 1; min-width: 60px; }
 .score-bar-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
 .score-value { font-size: 12px; font-weight: 600; min-width: 28px; }
-.score-comment { flex: 1; font-size: 11px; color: #94a3b8; font-style: italic; margin-left: 8px; }
-.tick-counter { font-size: 11px; color: #64748b; margin-left: auto; }
+.score-comment { flex: 1; font-size: 10px; color: #94a3b8; font-style: italic; margin-left: 8px; }
+.tick-counter { font-size: 10px; color: #64748b; margin-left: auto; }
 
 /* PlaybackToolbar */
 .playback-toolbar { display: flex; align-items: center; gap: 4px; }
 .playback-toolbar button { padding: 4px 8px; font-size: 14px; }
-.tick-counter { font-size: 11px; color: #64748b; padding: 0 6px; }
-.status-badge { font-size: 11px; padding: 2px 6px; border-radius: 3px; }
+.tick-counter { font-size: 10px; color: #64748b; padding: 0 6px; }
+.status-badge { font-size: 10px; padding: 2px 6px; border-radius: 3px; }
 .status-badge.completed { background: #14532d; color: #4ade80; }
 
 /* PartPalette */
 .part-palette { display: flex; flex-direction: column; gap: 4px; }
-.palette-title { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+.palette-title { font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
 .palette-item {
   width: 100%;
   text-align: left;
@@ -127,16 +127,39 @@ select {
   border-top: 1px solid #334155;
   flex-shrink: 0;
 }
-.score-panel-title { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-.score-panel-empty { font-size: 11px; color: #475569; font-style: italic; }
-.mechanism-summary { font-size: 11px; color: #64748b; margin-bottom: 8px; }
+.score-panel-title { font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.score-panel-empty { font-size: 10px; color: #475569; font-style: italic; }
+.mechanism-summary { font-size: 10px; color: #64748b; margin-bottom: 8px; }
 .score-bar { margin-bottom: 6px; }
 .score-bar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
-.score-label { font-size: 11px; color: #94a3b8; }
+.score-label { font-size: 10px; color: #94a3b8; }
 .score-value { font-size: 12px; font-weight: 600; }
 .score-track { height: 5px; background: #334155; border-radius: 3px; }
 .score-fill { height: 100%; border-radius: 3px; transition: width 0.4s, background-color 0.4s; }
-.score-comment { font-size: 11px; color: #94a3b8; font-style: italic; margin-top: 6px; }
+.score-comment { font-size: 10px; color: #94a3b8; font-style: italic; margin-top: 6px; }
+
+.error-toast {
+  position: fixed;
+  bottom: 36px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #7f1d1d;
+  border: 1px solid #ef4444;
+  border-radius: 4px;
+  padding: 6px 14px;
+  font-size: 12px;
+  color: #fca5a5;
+  z-index: 100;
+  cursor: pointer;
+  animation: toastIn 0.15s ease;
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(6px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.score-issues { margin-top: 6px; display: flex; flex-direction: column; gap: 2px; }
+.score-issue { font-size: 10px; color: #fcd34d; }
 
 .connection-mode-hint {
   position: absolute;

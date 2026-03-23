@@ -125,7 +125,7 @@ describe('computeScores', () => {
     const c = createConnection('gear_mesh', 'h1', hOut.id, 'fl1', fIn.id, 'c1');
     const mech = makeMechanism({ parts: [h, f], connections: [c] });
     const scores = computeScores(mech);
-    for (const v of Object.values(scores)) {
+    for (const v of [scores.consistency, scores.complexity, scores.meaninglessness]) {
       expect(v).toBeGreaterThanOrEqual(0);
       expect(v).toBeLessThanOrEqual(100);
     }
@@ -134,12 +134,12 @@ describe('computeScores', () => {
 
 describe('generateComment', () => {
   it('meaninglessness >= 90 の場合は傑作コメント', () => {
-    const scores: ScoreSet = { consistency: 100, complexity: 100, meaninglessness: 90 };
+    const scores: ScoreSet = { consistency: 100, complexity: 100, meaninglessness: 90, issues: [] };
     expect(generateComment(scores)).toContain('傑作');
   });
 
   it('meaninglessness = 0 の場合は最下位コメント', () => {
-    const scores: ScoreSet = { consistency: 0, complexity: 0, meaninglessness: 0 };
+    const scores: ScoreSet = { consistency: 0, complexity: 0, meaninglessness: 0, issues: [] };
     expect(generateComment(scores)).toBeTruthy();
   });
 });

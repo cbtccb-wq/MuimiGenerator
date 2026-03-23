@@ -7,6 +7,33 @@
 
 import type { Mechanism, Part, Connection, GearPart } from '../../types/mechanism';
 import { SCHEMA_VERSION } from '../../types/mechanism';
+import { createIdlerGear } from '../../domain/models/parts';
+
+// --------------------------------------------------------------------------
+// 生成テーマ
+// --------------------------------------------------------------------------
+
+export type GenerationTheme =
+  | 'random'
+  | 'minimal_waste'
+  | 'noisy'
+  | 'overbuilt'
+  | 'flag_devotion';
+
+interface ThemeConfig {
+  /** 実効 complexity を計算する関数 */
+  complexity: (base: number) => number;
+  /** 冗長ギア追加の回数（0 = スキップ、1 = 通常、2 = 2倍） */
+  redundantPasses: number;
+}
+
+const THEME_CONFIGS: Record<GenerationTheme, ThemeConfig> = {
+  random:        { complexity: (c) => c,               redundantPasses: 1 },
+  minimal_waste: { complexity: (c) => Math.min(c, 2),  redundantPasses: 0 },
+  noisy:         { complexity: (c) => Math.max(c, 4),  redundantPasses: 2 },
+  overbuilt:     { complexity: () => 5,                redundantPasses: 3 },
+  flag_devotion: { complexity: (c) => Math.max(c, 3),  redundantPasses: 1 },
+};
 import { buildMainPath } from '../../generators/builders/buildMainPath';
 import { createGear } from '../../domain/models/parts';
 import { createConnection } from '../../domain/models/Connection';
@@ -36,10 +63,17 @@ function addRedundantGears(
     const decorRadius = 14 + Math.floor(Math.random() * 3) * 4;
     const yOffset = i % 2 === 0 ? -(hostRadius + decorRadius + 4) : (hostRadius + decorRadius + 4);
 
-    const decorGear = createGear(
-      { teeth: 6 + Math.floor(Math.random() * 4) * 2, radius: decorRadius },
-      { x: host.position.x, y: host.position.y + yOffset },
-    );
+    // complexity >= 4 で 50% の確率でアイドラギアを配置
+    const useIdler = complexity >= 4 && Math.random() < 0.5;
+    const decorGear = useIdler
+      ? createIdlerGear(
+          { teeth: 12 },
+          { x: host.position.x, y: host.position.y + yOffset },
+        )
+      : createGear(
+          { teeth: 6 + Math.floor(Math.random() * 4) * 2, radius: decorRadius },
+          { x: host.position.x, y: host.position.y + yOffset },
+        );
 
     const fromPort = host.ports.find((p) => p.role === 'output');
     const toPort = decorGear.ports.find((p) => p.role === 'input');
@@ -64,9 +98,15 @@ function addRedundantGears(
 // メインエクスポート
 // --------------------------------------------------------------------------
 
-export function generateMechanism(complexity = 3): Mechanism {
-  const { parts: mainParts, connections: mainConns } = buildMainPath(complexity);
-  const { parts, connections } = addRedundantGears(mainParts, mainConns, complexity);
+export function generateMechanism(complexity = 3, theme: GenerationTheme = 'random'): Mechanism {
+  const cfg = THEME_CONFIGS[theme];
+  const eff = cfg.complexity(complexity);
+
+  let { parts, connections } = buildMainPath(eff);
+
+  for (let i = 0; i < cfg.redundantPasses; i++) {
+    ({ parts, connections } = addRedundantGears(parts, connections, eff));
+  }
 
   return {
     id: crypto.randomUUID(),

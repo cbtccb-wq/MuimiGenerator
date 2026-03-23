@@ -94,7 +94,76 @@ function calcMeaninglessness(mechanism: Mechanism, consistency: number, _complex
   // 過程の長さ：部品数に比例
   const processScore = Math.min(parts.length * 3, 30);
 
-  return Math.min(100, Math.round(triviality + redundancyScore + processScore));
+  // アイドラギアボーナス：完全な無変換中継
+  const idlerCount = parts.filter((p) => p.type === 'idler_gear').length;
+  const idlerBonus = Math.min(idlerCount * 5, 20);
+
+  return Math.min(100, Math.round(triviality + redundancyScore + processScore + idlerBonus));
+}
+
+// --------------------------------------------------------------------------
+// 破綻・問題点の検知（講評として返す）
+// --------------------------------------------------------------------------
+
+export function detectIssues(mechanism: Mechanism): string[] {
+  const { parts, connections } = mechanism;
+  const issues: string[] = [];
+
+  if (parts.length === 0) return issues;
+
+  // 出力部品なし
+  const outputs = parts.filter((p) => p.type === 'flag' || p.type === 'bell');
+  if (outputs.length === 0) {
+    issues.push('出力部品がありません（Flag か Bell を追加しましょう）');
+  }
+
+  // Handle からの BFS で到達可能ノードを取得
+  const adj = new Map<string, string[]>();
+  for (const p of parts) adj.set(p.id, []);
+  for (const c of connections) adj.get(c.fromPartId)?.push(c.toPartId);
+
+  const handles = parts.filter((p) => p.type === 'handle');
+  const reachable = new Set<string>();
+  const queue = handles.map((h) => h.id);
+  while (queue.length > 0) {
+    const id = queue.shift()!;
+    if (reachable.has(id)) continue;
+    reachable.add(id);
+    for (const next of adj.get(id) ?? []) queue.push(next);
+  }
+
+  // 孤立部品（どの接続にも登場しない）
+  const connectedIds = new Set<string>();
+  for (const c of connections) {
+    connectedIds.add(c.fromPartId);
+    connectedIds.add(c.toPartId);
+  }
+  const isolated = parts.filter(
+    (p) => !connectedIds.has(p.id) && p.type !== 'handle',
+  );
+  if (isolated.length > 0) {
+    issues.push(`孤立した部品があります（${isolated.length} 個）`);
+  }
+
+  // 空転: Handle に繋がっているが出力に届かない中間部品
+  const midParts = parts.filter((p) => p.type !== 'handle' && p.type !== 'flag' && p.type !== 'bell');
+  const deadEnd = midParts.filter((p) => reachable.has(p.id) && !outputs.some((o) => reachable.has(o.id)));
+  if (deadEnd.length > 0 && outputs.length > 0) {
+    issues.push('入力から信号が来ていますが出力に届きません（空転）');
+  }
+
+  // 過剰接続: 1 つの input ポートに複数の接続
+  const inputCount = new Map<string, number>();
+  for (const c of connections) {
+    const key = `${c.toPartId}:${c.toPortId}`;
+    inputCount.set(key, (inputCount.get(key) ?? 0) + 1);
+  }
+  const overloaded = [...inputCount.values()].filter((n) => n > 1).length;
+  if (overloaded > 0) {
+    issues.push('同じ入力ポートに複数の接続があります（過拘束）');
+  }
+
+  return issues;
 }
 
 // --------------------------------------------------------------------------
@@ -126,7 +195,8 @@ export function computeScores(mechanism: Mechanism): ScoreSet {
   const consistency    = calcConsistency(mechanism);
   const complexity     = calcComplexity(mechanism);
   const meaninglessness = calcMeaninglessness(mechanism, consistency, complexity);
-  return { consistency, complexity, meaninglessness };
+  const issues         = detectIssues(mechanism);
+  return { consistency, complexity, meaninglessness, issues };
 }
 
 export function getScoreColor(score: number): string {
@@ -135,11 +205,28 @@ export function getScoreColor(score: number): string {
   return '#f87171';                   // red
 }
 
-/** 部品数ベースのラベル（ScorePanel 用） */
+/** 無意味度スコアに基づくリザルト文（ScorePanel 用） */
 export function getMechanismSummary(mechanism: Mechanism): string {
   const parts = mechanism.parts.length;
   const conns = mechanism.connections.length;
-  return `${parts} 部品 / ${conns} 接続`;
+  const base = `${parts} 部品 / ${conns} 接続`;
+  const scores = mechanism.scores;
+  if (!scores) return base;
+
+  const hasBell = mechanism.parts.some((p) => p.type === 'bell');
+  const flagCount = mechanism.parts.filter((p) => p.type === 'flag').length;
+
+  if (scores.meaninglessness >= 90) {
+    return `${base} — 壮大な工程の末、旗が少し動きました`;
+  }
+  if (scores.meaninglessness >= 60) {
+    const output = hasBell ? 'ベルが少し鳴りました' : `旗が ${flagCount} 本揺れました`;
+    return `${base} — ${output}（それなりに遠回りです）`;
+  }
+  if (scores.meaninglessness >= 40) {
+    return `${base} — まだ目的に近すぎます`;
+  }
+  return base;
 }
 
 export { calcConsistency, calcComplexity, calcMeaninglessness };

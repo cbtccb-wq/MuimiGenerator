@@ -111,3 +111,34 @@
 - `docs/ai/evaluation_rubric.md`（ループ中変更禁止）
 
 **commit hash:** （初期コミット後に記入）
+
+### Phase 8 — 2026-03-22
+
+**変えたこと:**
+- PlaybackToolbar: 4ボタン→1トグルボタンに削減（評価ルーブリック対応）
+- index.css: フォントサイズを 14px/12px/10px の3種類に統一
+- SVG インライン fontSize: 9→10px に統一
+- useAppStore: `errorMessage`/`dismissError`/`_past`/`_future`/`undo`/`redo` を追加
+- loadFromJSON: 失敗時に errorMessage をセット（console.error のみからUI表示へ）
+- finishConnection: 接続不可時に errorMessage をセット
+- App.tsx: エラートースト UI (3秒自動消去 + クリック消去) を追加
+- App.tsx: キーボードショートカット一元化（Ctrl+Z Undo、Ctrl+Y Redo、Escape 接続キャンセル、→ ステップ実行）
+- MechanismCanvas.tsx: SVGドラッグ&ドロップ（svgRef + dragRef + svgPoint() で座標変換）
+- PartRenderer.tsx: `onPartMouseDown` プロップ追加、cursor: grab に変更
+- ConnectionRenderer.tsx: ヒットエリア（透明 strokeWidth:12）追加、onConnectionClick で削除
+
+**変えなかったこと（理由）:**
+- 既存テスト — 削除禁止（CLAUDE.md Rule 3）
+- evaluation_rubric.md — ループ中変更禁止
+- ドメインロジック・シミュレーションエンジン — 変更不要
+
+**未解決課題:**
+- なし
+
+**現在の仮定:**
+- A-001〜A-003 すべて [RESOLVED]（assumptions.md 参照）
+
+**触ってはいけないもの:**
+- `docs/ai/evaluation_rubric.md`（ループ中変更禁止）
+
+**commit hash:** （コミット後に記入）

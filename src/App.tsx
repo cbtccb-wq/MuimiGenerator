@@ -9,7 +9,11 @@ export default function App() {
   const runtime = useAppStore((s) => s.runtime);
   const stepForward = useAppStore((s) => s.stepForward);
   const generate = useAppStore((s) => s.generate);
+  const theme = useAppStore((s) => s.theme);
+  const setTheme = useAppStore((s) => s.setTheme);
   const loadFromJSON = useAppStore((s) => s.loadFromJSON);
+  const errorMessage = useAppStore((s) => s.errorMessage);
+  const dismissError = useAppStore((s) => s.dismissError);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Tick timer — starts/stops based on runtime status
@@ -18,6 +22,34 @@ export default function App() {
     const id = setInterval(stepForward, 80);
     return () => clearInterval(id);
   }, [runtime?.status, stepForward]);
+
+  // Auto-dismiss error after 3 seconds
+  useEffect(() => {
+    if (!errorMessage) return;
+    const id = setTimeout(dismissError, 3000);
+    return () => clearTimeout(id);
+  }, [errorMessage, dismissError]);
+
+  // Keyboard shortcuts (global)
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      const mod = e.ctrlKey || e.metaKey;
+      if (mod && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        useAppStore.getState().undo();
+      } else if ((mod && e.key === 'y') || (mod && e.shiftKey && e.key === 'z')) {
+        e.preventDefault();
+        useAppStore.getState().redo();
+      } else if (e.key === 'Escape') {
+        useAppStore.getState().cancelConnection();
+      } else if (e.key === 'ArrowRight' && !mod) {
+        e.preventDefault();
+        useAppStore.getState().stepForward();
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -37,6 +69,17 @@ export default function App() {
         <h1>無意味機構ジェネレータ</h1>
         <div className="toolbar-sep" />
         <div className="toolbar-group">
+          <select
+            value={theme}
+            onChange={(e) => setTheme(e.target.value as typeof theme)}
+            title="生成テーマ"
+          >
+            <option value="random">ランダム</option>
+            <option value="minimal_waste">最短なのに無駄</option>
+            <option value="noisy">騒がしいだけ</option>
+            <option value="overbuilt">大げさだが成果薄</option>
+            <option value="flag_devotion">旗のために全力</option>
+          </select>
           <button className="primary" onClick={() => generate()}>
             ▶ 生成
           </button>
@@ -72,6 +115,12 @@ export default function App() {
       </div>
 
       <ScorePanel />
+
+      {errorMessage && (
+        <div className="error-toast" role="alert" onClick={dismissError}>
+          {errorMessage}
+        </div>
+      )}
     </div>
   );
 }

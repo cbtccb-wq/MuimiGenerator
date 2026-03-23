@@ -21,13 +21,22 @@ const DASH: Record<string, string> = {
   rope:         '8 4',
 };
 
+const CONNECTION_LABEL: Record<string, string> = {
+  gear_mesh:    '歯車噛み合わせ — 回転を回転に伝える',
+  cam_follower: 'カム従動 — 回転を直動に変換する',
+  push_link:    'プッシュリンク — 直動を直動に伝える',
+  trigger:      'トリガー信号 — 閾値を超えると起動する',
+  rope:         'ロープ伝達 — 回転を直動に引っ張る',
+};
+
 interface Props {
   connection: Connection;
   mechanism: Mechanism;
   runtime?: SimulationRuntime | null;
+  onConnectionClick?: (connId: string) => void;
 }
 
-export function ConnectionRenderer({ connection, mechanism, runtime }: Props) {
+export function ConnectionRenderer({ connection, mechanism, runtime, onConnectionClick }: Props) {
   const fromPart = mechanism.parts.find((p) => p.id === connection.fromPartId);
   const toPart   = mechanism.parts.find((p) => p.id === connection.toPartId);
   if (!fromPart || !toPart) return null;
@@ -55,14 +64,32 @@ export function ConnectionRenderer({ connection, mechanism, runtime }: Props) {
   const opacity = isActive ? 1.0 : 0.45;
   const width   = isActive ? 2.5 : 1.5;
 
+  const label = CONNECTION_LABEL[connection.type] ?? connection.type;
+
   return (
-    <path
-      d={d}
-      fill="none"
-      stroke={stroke}
-      strokeWidth={width}
-      strokeDasharray={dash}
-      opacity={opacity}
-    />
+    <g>
+      {/* 表示用の接続線 */}
+      <path
+        d={d}
+        fill="none"
+        stroke={stroke}
+        strokeWidth={width}
+        strokeDasharray={dash}
+        opacity={opacity}
+      >
+        <title>{label}</title>
+      </path>
+      {/* クリック判定用の透明な太い線（削除ヒットエリア） */}
+      {onConnectionClick && (
+        <path
+          d={d}
+          fill="none"
+          stroke="transparent"
+          strokeWidth={12}
+          style={{ cursor: 'pointer' }}
+          onClick={(e) => { e.stopPropagation(); onConnectionClick(connection.id); }}
+        />
+      )}
+    </g>
   );
 }

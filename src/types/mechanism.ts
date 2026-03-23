@@ -9,7 +9,7 @@
 // 基本プリミティブ
 // --------------------------------------------------------------------------
 
-export type PartType = 'handle' | 'gear' | 'lever' | 'cam' | 'slider' | 'flag' | 'bell';
+export type PartType = 'handle' | 'gear' | 'lever' | 'cam' | 'slider' | 'flag' | 'bell' | 'idler_gear';
 
 /** ポートの信号種別 */
 export type PortKind = 'rotary' | 'linear' | 'trigger';
@@ -78,6 +78,11 @@ export interface BellParams {
   resonance: number;
 }
 
+export interface IdlerGearParams {
+  /** 歯数（スコア計算用のみ。変換はしない） */
+  teeth: number;
+}
+
 export type PartParams =
   | HandleParams
   | GearParams
@@ -85,7 +90,8 @@ export type PartParams =
   | CamParams
   | SliderParams
   | FlagParams
-  | BellParams;
+  | BellParams
+  | IdlerGearParams;
 
 // --------------------------------------------------------------------------
 // 部品（判別可能ユニオン）
@@ -126,6 +132,11 @@ export interface BellPart extends BasePart {
   params: BellParams;
 }
 
+export interface IdlerGearPart extends BasePart {
+  type: 'idler_gear';
+  params: IdlerGearParams;
+}
+
 export type Part =
   | HandlePart
   | GearPart
@@ -133,7 +144,8 @@ export type Part =
   | CamPart
   | SliderPart
   | FlagPart
-  | BellPart;
+  | BellPart
+  | IdlerGearPart;
 
 // --------------------------------------------------------------------------
 // 接続
@@ -159,6 +171,8 @@ export interface ScoreSet {
   complexity: number;
   /** 壮大な徒労感の定量値 0〜100 */
   meaninglessness: number;
+  /** 破綻・問題点の講評リスト */
+  issues: string[];
 }
 
 // --------------------------------------------------------------------------

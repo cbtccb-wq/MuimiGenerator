@@ -32,6 +32,7 @@ function getOutputValue(part: Part, state: PartRuntimeState): number {
   switch (part.type) {
     case 'handle':
     case 'gear':
+    case 'idler_gear':
       return state.isActive ? 1.0 : 0;
     case 'cam': {
       const ecc = (part as CamPart).params.eccentricity;
@@ -73,6 +74,11 @@ function updatePartState(
       const ratio = g.params.teeth > 12 ? 0.8 : g.params.teeth < 10 ? 1.2 : 1.0;
       return { ...prev, isActive: true, angle: prev.angle + ROTATION_SPEED * ratio };
     }
+
+    case 'idler_gear':
+      // 入力をそのまま出力（変換なし・速度変換なし）
+      if (!hasInput) return { ...prev, isActive: false };
+      return { ...prev, isActive: true, angle: prev.angle + ROTATION_SPEED };
 
     case 'cam': {
       if (!hasInput) return { ...prev, isActive: false };

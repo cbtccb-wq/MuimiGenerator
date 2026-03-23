@@ -16,6 +16,7 @@ import {
   createSlider,
   createFlag,
   createBell,
+  createIdlerGear,
 } from '../../domain/models/parts';
 import { createConnection } from '../../domain/models/Connection';
 import { getValidConnectionTypes } from '../../domain/rules/connectionRules';
@@ -91,8 +92,9 @@ function makePart(type: PartType, x: number, y: number): Part {
     case 'lever':   return createLever({ length: 70 + Math.floor(Math.random() * 3) * 10, pivotRatio: 0.4 + Math.random() * 0.2 }, pos);
     case 'cam':     return createCam({ radius: 18 + Math.floor(Math.random() * 3) * 4, eccentricity: 12 + Math.floor(Math.random() * 3) * 4 }, pos);
     case 'slider':  return createSlider({ range: 50 + Math.floor(Math.random() * 3) * 10 }, pos);
-    case 'flag':    return createFlag({ waveAmplitude: 8 + Math.floor(Math.random() * 3) * 4 }, pos);
-    case 'bell':    return createBell({ resonance: 3 + Math.floor(Math.random() * 3) }, pos);
+    case 'flag':       return createFlag({ waveAmplitude: 8 + Math.floor(Math.random() * 3) * 4 }, pos);
+    case 'bell':       return createBell({ resonance: 3 + Math.floor(Math.random() * 3) }, pos);
+    case 'idler_gear': return createIdlerGear({ teeth: 12 }, pos);
   }
 }
 

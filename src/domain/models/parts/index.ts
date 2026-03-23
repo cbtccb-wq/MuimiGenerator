@@ -9,4 +9,5 @@ export { createCam } from './Cam';
 export { createSlider } from './Slider';
 export { createFlag } from './Flag';
 export { createBell } from './Bell';
+export { createIdlerGear } from './IdlerGear';
 export { makePort, generateId } from './Part';

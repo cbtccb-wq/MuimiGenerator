@@ -5,10 +5,11 @@
  * runtimeState を受け取り、アニメーション状態を反映する。
  */
 
-import type { Part } from '../../../types/mechanism';
+import type { Part, PortKind } from '../../../types/mechanism';
 import type {
   CamPart,
   GearPart,
+  IdlerGearPart,
   LeverPart,
   SliderPart,
   FlagPart,
@@ -20,23 +21,25 @@ import type { PartRuntimeState } from '../../../types/simulation';
 // --------------------------------------------------------------------------
 
 const COLORS: Record<string, string> = {
-  handle: '#f97316',
-  gear:   '#64748b',
-  lever:  '#06b6d4',
-  cam:    '#f59e0b',
-  slider: '#10b981',
-  flag:   '#fbbf24',
-  bell:   '#ec4899',
+  handle:     '#f97316',
+  gear:       '#64748b',
+  lever:      '#06b6d4',
+  cam:        '#f59e0b',
+  slider:     '#10b981',
+  flag:       '#fbbf24',
+  bell:       '#ec4899',
+  idler_gear: '#334155',
 };
 
 const ACTIVE_COLORS: Record<string, string> = {
-  handle: '#fb923c',
-  gear:   '#94a3b8',
-  lever:  '#22d3ee',
-  cam:    '#fcd34d',
-  slider: '#34d399',
-  flag:   '#fde68a',
-  bell:   '#f9a8d4',
+  handle:     '#fb923c',
+  gear:       '#94a3b8',
+  lever:      '#22d3ee',
+  cam:        '#fcd34d',
+  slider:     '#34d399',
+  flag:       '#fde68a',
+  bell:       '#f9a8d4',
+  idler_gear: '#475569',
 };
 
 function getColor(type: string, isActive: boolean): string {
@@ -53,7 +56,7 @@ function HandleRenderer({ isActive }: { isActive: boolean }) {
     <g>
       <circle r={22} fill={c} opacity={0.9} />
       <circle r={6} fill="#fff" opacity={0.6} />
-      <text y={36} textAnchor="middle" fontSize={9} fill="#94a3b8">Handle</text>
+      <text y={36} textAnchor="middle" fontSize={10} fill="#94a3b8">Handle</text>
     </g>
   );
 }
@@ -86,7 +89,7 @@ function GearRenderer({ part, angle, isActive }: { part: GearPart; angle: number
       <circle r={inner} fill="none" stroke="#334155" strokeWidth={1} />
       <path d={teethPath} fill={c} stroke="#334155" strokeWidth={0.5} />
       <circle r={5} fill="#1e293b" />
-      <text y={r + 14} textAnchor="middle" fontSize={9} fill="#94a3b8" transform={`rotate(${-(angle * 180) / Math.PI})`}>
+      <text y={r + 14} textAnchor="middle" fontSize={10} fill="#94a3b8" transform={`rotate(${-(angle * 180) / Math.PI})`}>
         Gear
       </text>
     </g>
@@ -108,7 +111,7 @@ function LeverRenderer({ part, displacement, isActive }: { part: LeverPart; disp
     <g transform={`rotate(${tiltDeg})`}>
       <rect x={-5} y={-halfLen} width={10} height={part.params.length} rx={3} fill={c} opacity={0.85} />
       <circle cy={pivotY} r={5} fill="#1e293b" stroke={c} strokeWidth={2} />
-      <text y={halfLen + 14} textAnchor="middle" fontSize={9} fill="#94a3b8" transform={`rotate(${-tiltDeg})`}>
+      <text y={halfLen + 14} textAnchor="middle" fontSize={10} fill="#94a3b8" transform={`rotate(${-tiltDeg})`}>
         Lever
       </text>
     </g>
@@ -131,7 +134,7 @@ function CamRenderer({ part, angle, isActive }: { part: CamPart; angle: number; 
     <g transform={`rotate(${(angle * 180) / Math.PI})`}>
       <ellipse rx={r + ecc * 0.3} ry={r} fill={c} opacity={0.85} />
       <circle cx={offsetX} cy={offsetY} r={4} fill="#1e293b" />
-      <text y={r + ecc + 14} textAnchor="middle" fontSize={9} fill="#94a3b8" transform={`rotate(${-(angle * 180) / Math.PI})`}>
+      <text y={r + ecc + 14} textAnchor="middle" fontSize={10} fill="#94a3b8" transform={`rotate(${-(angle * 180) / Math.PI})`}>
         Cam
       </text>
     </g>
@@ -154,7 +157,7 @@ function SliderRenderer({ part, displacement, isActive, triggered }: { part: Sli
       {/* スライダー */}
       <rect x={slideX - 12} y={-9} width={24} height={18} rx={3} fill={c} opacity={0.9} />
       {triggered && <circle cx={slideX} cy={0} r={5} fill="#fff" opacity={0.8} />}
-      <text y={22} textAnchor="middle" fontSize={9} fill="#94a3b8">Slider</text>
+      <text y={22} textAnchor="middle" fontSize={10} fill="#94a3b8">Slider</text>
     </g>
   );
 }
@@ -181,7 +184,7 @@ function FlagRenderer({ part, angle, triggered }: { part: FlagPart; angle: numbe
       {triggered && (
         <text y={-52} textAnchor="middle" fontSize={10} fill={c}>🚩</text>
       )}
-      <text y={14} textAnchor="middle" fontSize={9} fill="#94a3b8">Flag</text>
+      <text y={14} textAnchor="middle" fontSize={10} fill="#94a3b8">Flag</text>
     </g>
   );
 }
@@ -204,7 +207,43 @@ function BellRenderer({ angle, triggered }: { angle: number; triggered: boolean 
       {triggered && (
         <text y={-32} textAnchor="middle" fontSize={10} fill={c}>🔔</text>
       )}
-      <text y={16} textAnchor="middle" fontSize={9} fill="#94a3b8">Bell</text>
+      <text y={16} textAnchor="middle" fontSize={10} fill="#94a3b8">Bell</text>
+    </g>
+  );
+}
+
+// --------------------------------------------------------------------------
+// IdlerGear
+// --------------------------------------------------------------------------
+
+function IdlerGearRenderer({ part, angle, isActive }: { part: IdlerGearPart; angle: number; isActive: boolean }) {
+  const r = 18;
+  const teeth = part.params.teeth;
+  const c = getColor('idler_gear', isActive);
+  const outer = r + 5;
+  const inner = r - 2;
+
+  const teethPath = Array.from({ length: teeth }, (_, i) => {
+    const a0 = (i / teeth) * 2 * Math.PI - Math.PI / teeth;
+    const a1 = ((i + 0.4) / teeth) * 2 * Math.PI;
+    const a2 = ((i + 0.6) / teeth) * 2 * Math.PI;
+    const a3 = ((i + 1) / teeth) * 2 * Math.PI - Math.PI / teeth;
+    const px = (a: number, rr: number) => (Math.cos(a) * rr).toFixed(1);
+    const py = (a: number, rr: number) => (Math.sin(a) * rr).toFixed(1);
+    return `M ${px(a0, inner)} ${py(a0, inner)} L ${px(a1, outer)} ${py(a1, outer)} L ${px(a2, outer)} ${py(a2, outer)} L ${px(a3, inner)} ${py(a3, inner)}`;
+  }).join(' ');
+
+  const s = 6; // × マークのサイズ
+  return (
+    <g transform={`rotate(${(angle * 180) / Math.PI})`}>
+      <circle r={r} fill={c} opacity={0.8} />
+      <path d={teethPath} fill={c} stroke="#1e293b" strokeWidth={0.5} />
+      {/* × マーク（無負荷の意） */}
+      <line x1={-s} y1={-s} x2={s} y2={s} stroke="#94a3b8" strokeWidth={2} />
+      <line x1={s} y1={-s} x2={-s} y2={s} stroke="#94a3b8" strokeWidth={2} />
+      <text y={r + 14} textAnchor="middle" fontSize={10} fill="#64748b" transform={`rotate(${-(angle * 180) / Math.PI})`}>
+        アイドラ
+      </text>
     </g>
   );
 }
@@ -213,17 +252,36 @@ function BellRenderer({ angle, triggered }: { angle: number; triggered: boolean 
 // ポートのSVG円
 // --------------------------------------------------------------------------
 
+const PORT_KIND_JA: Record<PortKind, string> = {
+  rotary:  '回転',
+  linear:  '直動',
+  trigger: 'トリガー',
+};
+
+const PORT_HINT: Partial<Record<string, string>> = {
+  'rotary-output':  'Gear・Cam の入力に繋げる',
+  'rotary-input':   'Handle・Gear から受け取る',
+  'linear-output':  'Slider・Lever の入力に繋げる',
+  'linear-input':   'Cam・Lever から受け取る',
+  'trigger-output': 'Flag・Bell に繋げる',
+  'trigger-input':  'Slider から受け取る',
+};
+
 interface PortDotProps {
   offsetX: number;
   offsetY: number;
   portId: string;
+  kind: PortKind;
   role: 'input' | 'output';
   isPending: boolean;
   onPortClick: (portId: string) => void;
 }
 
-function PortDot({ offsetX, offsetY, portId, role, isPending, onPortClick }: PortDotProps) {
+function PortDot({ offsetX, offsetY, portId, kind, role, isPending, onPortClick }: PortDotProps) {
   const fill = isPending ? '#f59e0b' : role === 'output' ? '#ef4444' : '#3b82f6';
+  const roleJa = role === 'output' ? '出力' : '入力';
+  const hint = PORT_HINT[`${kind}-${role}`] ?? '';
+  const tooltip = `${PORT_KIND_JA[kind]}${roleJa} — ${hint}`;
   return (
     <circle
       cx={offsetX}
@@ -234,7 +292,9 @@ function PortDot({ offsetX, offsetY, portId, role, isPending, onPortClick }: Por
       strokeWidth={1.5}
       style={{ cursor: 'pointer' }}
       onClick={(e) => { e.stopPropagation(); onPortClick(portId); }}
-    />
+    >
+      <title>{tooltip}</title>
+    </circle>
   );
 }
 
@@ -249,6 +309,7 @@ interface PartRendererProps {
   pendingConnectionFrom?: { partId: string; portId: string } | null;
   onPartClick: (partId: string) => void;
   onPortClick: (partId: string, portId: string) => void;
+  onPartMouseDown?: (e: React.MouseEvent, partId: string) => void;
 }
 
 export function PartRenderer({
@@ -258,6 +319,7 @@ export function PartRenderer({
   pendingConnectionFrom,
   onPartClick,
   onPortClick,
+  onPartMouseDown,
 }: PartRendererProps) {
   const { x, y } = part.position;
   const isActive = runtimeState?.isActive ?? false;
@@ -272,8 +334,9 @@ export function PartRenderer({
       case 'lever':   return <LeverRenderer part={part as LeverPart} displacement={displacement} isActive={isActive} />;
       case 'cam':     return <CamRenderer part={part as CamPart} angle={angle} isActive={isActive} />;
       case 'slider':  return <SliderRenderer part={part as SliderPart} displacement={displacement} isActive={isActive} triggered={triggered} />;
-      case 'flag':    return <FlagRenderer part={part as FlagPart} angle={angle} triggered={triggered} />;
-      case 'bell':    return <BellRenderer angle={angle} triggered={triggered} />;
+      case 'flag':       return <FlagRenderer part={part as FlagPart} angle={angle} triggered={triggered} />;
+      case 'bell':       return <BellRenderer angle={angle} triggered={triggered} />;
+      case 'idler_gear': return <IdlerGearRenderer part={part as IdlerGearPart} angle={angle} isActive={isActive} />;
     }
   }
 
@@ -281,7 +344,8 @@ export function PartRenderer({
     <g
       transform={`translate(${x},${y})`}
       onClick={(e) => { e.stopPropagation(); onPartClick(part.id); }}
-      style={{ cursor: 'pointer' }}
+      onMouseDown={onPartMouseDown ? (e) => { onPartMouseDown(e, part.id); } : undefined}
+      style={{ cursor: 'grab' }}
     >
       {/* 選択リング */}
       {isSelected && <circle r={38} fill="none" stroke="#f8fafc" strokeWidth={1.5} strokeDasharray="4 3" opacity={0.6} />}
@@ -293,6 +357,7 @@ export function PartRenderer({
           offsetX={port.offset.x}
           offsetY={port.offset.y}
           portId={port.id}
+          kind={port.kind}
           role={port.role}
           isPending={pendingConnectionFrom?.portId === port.id && pendingConnectionFrom.partId === part.id}
           onPortClick={(pid) => onPortClick(part.id, pid)}

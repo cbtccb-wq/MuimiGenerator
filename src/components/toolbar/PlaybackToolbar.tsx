@@ -9,45 +9,28 @@ export function PlaybackToolbar() {
   const mechanism  = useAppStore((s) => s.mechanism);
   const start      = useAppStore((s) => s.startSimulation);
   const pause      = useAppStore((s) => s.pauseSimulation);
-  const stop       = useAppStore((s) => s.stopSimulation);
-  const step       = useAppStore((s) => s.stepForward);
 
   const hasMechanism = !!mechanism && mechanism.parts.length > 0;
   const status = runtime?.status ?? 'idle';
+  const isRunning = status === 'running';
+
+  function handleToggle() {
+    if (isRunning) pause();
+    else start();
+  }
 
   return (
     <div className="playback-toolbar">
       <button
-        onClick={start}
-        disabled={!hasMechanism || status === 'running'}
-        title="再生 (Space)"
+        onClick={handleToggle}
+        disabled={!hasMechanism}
+        title={isRunning ? '一時停止' : status === 'completed' ? '最初から再生 (→ でステップ実行)' : '再生 (→ でステップ実行)'}
       >
-        ▶
-      </button>
-      <button
-        onClick={pause}
-        disabled={status !== 'running'}
-        title="一時停止"
-      >
-        ⏸
-      </button>
-      <button
-        onClick={stop}
-        disabled={!hasMechanism || status === 'idle'}
-        title="停止"
-      >
-        ⏹
-      </button>
-      <button
-        onClick={step}
-        disabled={!hasMechanism || status === 'running'}
-        title="1ステップ進む"
-      >
-        ⏭
+        {isRunning ? '⏸' : '▶'}
       </button>
       {runtime && (
         <span className="tick-counter">
-          {runtime.tick} / {runtime.maxTicks} tick
+          {runtime.tick} / {runtime.maxTicks}
         </span>
       )}
       {status === 'completed' && (

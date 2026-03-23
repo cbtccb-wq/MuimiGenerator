@@ -13,7 +13,10 @@
       "Bash(npm install:*)",
       "Bash(npm run:*)",
       "Bash(npm test:*)",
-      "Bash(git tag:*)"
+      "Bash(git tag:*)",
+      "Bash(where npm:*)",
+      "Bash(where node:*)",
+      "Bash(cmd /c \"cd /d C:\\\\Users\\\\cbtcc\\\\Documents\\\\MuimiGenerator && npm --version\" 2>&1)"
     ]
   }
 }
